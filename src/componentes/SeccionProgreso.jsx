@@ -3,23 +3,38 @@ import CabeceraProgreso from './CabeceraProgreso'
 import TarjetaProgreso from './TarjetaProgreso'
 import FormularioRegistro from './FormularioRegistro'
 import { useToggle } from '../hooks/useToggle'
+import { useProgreso } from '../hooks/useProgreso'
+import { eliminarProgreso } from '../servicios/progresoService'
 
-export default function SeccionProgreso({ registros: registrosProp = [] }) {
-  // SeccionProgreso administra los estados 'registros', 'busqueda' y 'filtroEstado'
-  // porque el formulario (para añadir sesiones), el resumen en CabeceraProgreso
-  // (para calcular el total y sesiones completadas) y la lista de registros
-  // necesitan compartir y estar sincronizados con la misma fuente de datos.
-  const [registros, setRegistros] = useState(registrosProp)
+export default function SeccionProgreso() {
+  // 'refrescar' se incrementa tras crear o eliminar → fuerza nueva consulta a Supabase
+  const [refrescar, setRefrescar] = useState(0)
+  const { registros, cargando, error } = useProgreso(refrescar)
+
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('todos')
+  const [errorAccion, setErrorAccion] = useState(null)
 
-  const { value: mostrarFormulario, toggle: toggleFormulario } = useToggle(false)
+  const { value: mostrarFormulario, toggle: toggleFormulario, setFalse: cerrarFormulario } = useToggle(false)
+
   const id = useId()
   const idBusqueda = `${id}-busqueda`
   const idEstado = `${id}-estado`
 
-  function agregarRegistro(nuevo) {
-    setRegistros((anteriores) => [nuevo, ...anteriores])
+  // Tras guardar en la API, cerramos el formulario y forzamos recarga
+  function handleRegistroGuardado() {
+    cerrarFormulario()
+    setRefrescar((n) => n + 1)
+  }
+
+  async function handleEliminar(idRegistro) {
+    setErrorAccion(null)
+    try {
+      await eliminarProgreso(idRegistro)
+      setRefrescar((n) => n + 1)
+    } catch (err) {
+      setErrorAccion('No se pudo eliminar el registro: ' + err.message)
+    }
   }
 
   function limpiarFiltros() {
@@ -27,17 +42,14 @@ export default function SeccionProgreso({ registros: registrosProp = [] }) {
     setFiltroEstado('todos')
   }
 
-  // 'completadas' y 'resultados' se calculan en cada render a partir del estado (no son estado).
-  // Los datos originales en 'registros' no se modifican al filtrar.
+  // Valores calculados — no son estado independiente
   const completadas = registros.filter((r) => r.estado === 'completada').length
-
   const terminoBusqueda = busqueda.trim().toLowerCase()
   const resultados = registros.filter((r) => {
     const coincideRutina = r.rutina.toLowerCase().includes(terminoBusqueda)
     const coincideEstado = filtroEstado === 'todos' || r.estado === filtroEstado
     return coincideRutina && coincideEstado
   })
-
   const hayFiltrosActivos = busqueda.trim() !== '' || filtroEstado !== 'todos'
 
   return (
@@ -56,7 +68,13 @@ export default function SeccionProgreso({ registros: registrosProp = [] }) {
           </button>
         </div>
 
-        {mostrarFormulario && <FormularioRegistro onAgregar={agregarRegistro} />}
+        {mostrarFormulario && (
+          <FormularioRegistro onGuardado={handleRegistroGuardado} />
+        )}
+
+        {errorAccion && (
+          <p className="mensaje error" role="alert">{errorAccion}</p>
+        )}
 
         <div className="progreso-herramientas">
           <div className="campo">
@@ -92,12 +110,22 @@ export default function SeccionProgreso({ registros: registrosProp = [] }) {
           )}
         </div>
 
-        <p role="status" className="texto-suave" style={{ marginBottom: '1rem' }}>
-          Mostrando {resultados.length} de {registros.length} sesiones
-        </p>
-
         <div className="progreso-lista">
-          {registros.length === 0 ? (
+          {cargando ? (
+            <p className="estado-mensaje">Cargando sesiones…</p>
+          ) : error ? (
+            <p className="estado-mensaje mensaje error" role="alert">
+              {error}
+              <button
+                type="button"
+                className="btn btn-borde btn-sm"
+                style={{ marginLeft: '1rem' }}
+                onClick={() => setRefrescar((n) => n + 1)}
+              >
+                Reintentar
+              </button>
+            </p>
+          ) : registros.length === 0 ? (
             <p className="estado-mensaje">
               Aún no tienes sesiones registradas. ¡Empieza hoy!
             </p>
@@ -106,16 +134,23 @@ export default function SeccionProgreso({ registros: registrosProp = [] }) {
               No hay sesiones que coincidan con la búsqueda.
             </p>
           ) : (
-            resultados.map((r) => (
-              <TarjetaProgreso
-                key={r.id}
-                rutina={r.rutina}
-                fecha={r.fecha}
-                duracionReal={r.duracionReal}
-                estado={r.estado}
-                nota={r.nota}
-              />
-            ))
+            <>
+              <p role="status" className="texto-suave" style={{ marginBottom: '1rem' }}>
+                Mostrando {resultados.length} de {registros.length} sesiones
+              </p>
+              {resultados.map((r) => (
+                <TarjetaProgreso
+                  key={r.id}
+                  id={r.id}
+                  rutina={r.rutina}
+                  fecha={r.fecha}
+                  duracionReal={`${r.duracion} min`}
+                  estado={r.estado}
+                  nota={r.nota}
+                  onEliminar={handleEliminar}
+                />
+              ))}
+            </>
           )}
         </div>
       </div>

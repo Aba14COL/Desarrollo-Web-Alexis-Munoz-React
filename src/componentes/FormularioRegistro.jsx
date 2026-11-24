@@ -1,64 +1,58 @@
-import { useState, useId } from 'react'
+import { useState, useId, useEffect } from 'react'
 import { rutinas } from '../datos'
+import { crearRegistro, editarRegistro } from '../servicios/progresoService'
 
-const valoresIniciales = {
-  rutina: '',
-  fecha: '',
-  duracion: '',
-  estado: 'completada',
-  nota: ''
+function fechaHoy() {
+  return new Date().toLocaleDateString('en-CA')
 }
 
-export default function FormularioRegistro({ onAgregar }) {
+export default function FormularioRegistro({ registroEdicion, onGuardado, onCancelarEdicion }) {
   const id = useId()
-  const [campos, setCampos] = useState(valoresIniciales)
+  const [rutinaId, setRutinaId] = useState('')
+  const [fecha, setFecha] = useState(fechaHoy())
+  const [duracion, setDuracion] = useState('')
+  const [nota, setNota] = useState('')
   const [errores, setErrores] = useState({})
-  const [mensajeExito, setMensajeExito] = useState('')
+  const [guardando, setGuardando] = useState(false)
+  const [errorApi, setErrorApi] = useState(null)
 
-  const idRutina = `${id}-rutina`
-  const idListaRutinas = `${id}-lista-rutinas`
-  const idErrorRutina = `${id}-error-rutina`
-  const idFecha = `${id}-fecha`
-  const idErrorFecha = `${id}-error-fecha`
-  const idDuracion = `${id}-duracion`
-  const idErrorDuracion = `${id}-error-duracion`
-  const idEstado = `${id}-estado`
-  const idNota = `${id}-nota`
-
-  function handleChange(event) {
-    const { name, value } = event.target
-    setCampos((anteriores) => ({
-      ...anteriores,
-      [name]: value
-    }))
-
-    if (mensajeExito) {
-      setMensajeExito('')
+  useEffect(() => {
+    if (registroEdicion) {
+      setRutinaId(String(registroEdicion.rutina_id))
+      setFecha(registroEdicion.fecha || fechaHoy())
+      setDuracion(String(registroEdicion.duracion_min || ''))
+      setNota(registroEdicion.nota || '')
+    } else {
+      setRutinaId('')
+      setFecha(fechaHoy())
+      setDuracion('')
+      setNota('')
     }
-  }
+    setErrores({})
+    setErrorApi(null)
+  }, [registroEdicion])
 
-  function handleSubmit(event) {
-    event.preventDefault()
+  async function handleSubmit(e) {
+    e.preventDefault()
 
     const nuevosErrores = {}
-    const rutinaTrim = campos.rutina.trim()
-    const fechaTrim = campos.fecha.trim()
-    const duracionStr = String(campos.duracion).trim()
-    const duracionNum = Number(duracionStr)
-    const hoy = new Date().toLocaleDateString('en-CA')
-
-    if (!rutinaTrim) {
-      nuevosErrores.rutina = 'La rutina es obligatoria.'
+    const rId = parseInt(rutinaId, 10)
+    if (!rId || Number.isNaN(rId)) {
+      nuevosErrores.rutina = 'Por favor selecciona una rutina válida.'
     }
 
-    if (!fechaTrim) {
-      nuevosErrores.fecha = 'La fecha es obligatoria.'
-    } else if (fechaTrim > hoy) {
-      nuevosErrores.fecha = 'La fecha no puede ser futura.'
+    const fTrim = fecha.trim()
+    if (!fTrim || Number.isNaN(Date.parse(fTrim))) {
+      nuevosErrores.fecha = 'Por favor ingresa una fecha válida.'
     }
 
-    if (!duracionStr || !Number.isInteger(duracionNum) || duracionNum < 1 || duracionNum > 300) {
-      nuevosErrores.duracion = 'La duración debe ser un número entero entre 1 y 300 minutos.'
+    const dNum = parseInt(duracion, 10)
+    if (!Number.isInteger(dNum) || dNum <= 0) {
+      nuevosErrores.duracion = 'La duración debe ser un número entero mayor a 0 minutos.'
+    }
+
+    if (nota.length > 200) {
+      nuevosErrores.nota = 'La nota no puede exceder los 200 caracteres.'
     }
 
     if (Object.keys(nuevosErrores).length > 0) {
@@ -66,125 +60,116 @@ export default function FormularioRegistro({ onAgregar }) {
       return
     }
 
-    const nuevoRegistro = {
-      id: crypto.randomUUID(),
-      rutina: rutinaTrim,
-      fecha: fechaTrim,
-      duracionReal: `${duracionNum} min`,
-      estado: campos.estado,
-      nota: campos.nota.trim()
+    setErrores({})
+    setGuardando(true)
+    setErrorApi(null)
+
+    const payload = {
+      rutina_id: rId,
+      fecha: fTrim,
+      duracion_min: dNum,
+      nota: nota.trim() || null
     }
 
-    onAgregar(nuevoRegistro)
-    setCampos(valoresIniciales)
-    setErrores({})
-    setMensajeExito('Sesión registrada.')
+    try {
+      if (registroEdicion) {
+        await editarRegistro(registroEdicion.id, payload)
+      } else {
+        await crearRegistro(payload)
+      }
+      onGuardado()
+    } catch (err) {
+      setErrorApi(err.message || 'Error al guardar')
+    } finally {
+      setGuardando(false)
+    }
   }
 
   return (
-    <form className="formulario panel" onSubmit={handleSubmit} noValidate>
-      <div className="campo">
-        <label htmlFor={idRutina}>Rutina</label>
-        <input
-          type="text"
-          id={idRutina}
-          name="rutina"
-          list={idListaRutinas}
-          value={campos.rutina}
-          onChange={handleChange}
-          placeholder="Selecciona o escribe una rutina..."
-          aria-invalid={Boolean(errores.rutina)}
-          aria-describedby={errores.rutina ? idErrorRutina : undefined}
-        />
-        <datalist id={idListaRutinas}>
-          {rutinas.map((r) => (
-            <option key={r.id} value={r.nombre} />
-          ))}
-        </datalist>
-        {errores.rutina && (
-          <p id={idErrorRutina} className="mensaje error" role="alert">
-            {errores.rutina}
-          </p>
-        )}
-      </div>
+    <aside className="panel" style={{ height: 'fit-content' }}>
+      <h2 className="titulo-seccion">
+        {registroEdicion ? 'Editar entrenamiento' : 'Registrar entrenamiento'}
+      </h2>
+      <form className="formulario" onSubmit={handleSubmit} noValidate>
+        <div className="campo">
+          <label htmlFor={`${id}-rutina`}>Rutina realizada</label>
+          <select
+            id={`${id}-rutina`}
+            value={rutinaId}
+            onChange={(e) => setRutinaId(e.target.value)}
+            disabled={guardando}
+            required
+          >
+            <option value="">Selecciona una rutina</option>
+            {rutinas.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.nombre}
+              </option>
+            ))}
+          </select>
+          {errores.rutina && <p className="mensaje error" role="alert">{errores.rutina}</p>}
+        </div>
 
-      <div className="campo">
-        <label htmlFor={idFecha}>Fecha</label>
-        <input
-          type="date"
-          id={idFecha}
-          name="fecha"
-          value={campos.fecha}
-          onChange={handleChange}
-          aria-invalid={Boolean(errores.fecha)}
-          aria-describedby={errores.fecha ? idErrorFecha : undefined}
-        />
-        {errores.fecha && (
-          <p id={idErrorFecha} className="mensaje error" role="alert">
-            {errores.fecha}
-          </p>
-        )}
-      </div>
+        <div className="campo">
+          <label htmlFor={`${id}-fecha`}>Fecha</label>
+          <input
+            type="date"
+            id={`${id}-fecha`}
+            value={fecha}
+            onChange={(e) => setFecha(e.target.value)}
+            disabled={guardando}
+            required
+          />
+          {errores.fecha && <p className="mensaje error" role="alert">{errores.fecha}</p>}
+        </div>
 
-      <div className="campo">
-        <label htmlFor={idDuracion}>Duración (minutos)</label>
-        <input
-          type="number"
-          id={idDuracion}
-          name="duracion"
-          value={campos.duracion}
-          onChange={handleChange}
-          min="1"
-          max="300"
-          step="1"
-          placeholder="Ej: 30"
-          aria-invalid={Boolean(errores.duracion)}
-          aria-describedby={errores.duracion ? idErrorDuracion : undefined}
-        />
-        {errores.duracion && (
-          <p id={idErrorDuracion} className="mensaje error" role="alert">
-            {errores.duracion}
-          </p>
-        )}
-      </div>
+        <div className="campo">
+          <label htmlFor={`${id}-duracion`}>Duración (minutos)</label>
+          <input
+            type="number"
+            id={`${id}-duracion`}
+            value={duracion}
+            onChange={(e) => setDuracion(e.target.value)}
+            placeholder="Ej. 30"
+            min="1"
+            disabled={guardando}
+            required
+          />
+          {errores.duracion && <p className="mensaje error" role="alert">{errores.duracion}</p>}
+        </div>
 
-      <div className="campo">
-        <label htmlFor={idEstado}>Estado</label>
-        <select
-          id={idEstado}
-          name="estado"
-          value={campos.estado}
-          onChange={handleChange}
-        >
-          <option value="completada">Completada</option>
-          <option value="parcial">Parcial</option>
-        </select>
-      </div>
+        <div className="campo">
+          <label htmlFor={`${id}-nota`}>Nota (opcional)</label>
+          <textarea
+            id={`${id}-nota`}
+            rows="3"
+            maxLength="200"
+            placeholder="¿Cómo te sentiste hoy?"
+            value={nota}
+            onChange={(e) => setNota(e.target.value)}
+            disabled={guardando}
+          ></textarea>
+          {errores.nota && <p className="mensaje error" role="alert">{errores.nota}</p>}
+        </div>
 
-      <div className="campo">
-        <label htmlFor={idNota}>Nota (opcional)</label>
-        <textarea
-          id={idNota}
-          name="nota"
-          value={campos.nota}
-          onChange={handleChange}
-          rows="3"
-          placeholder="Comentarios sobre la sesión..."
-        />
-      </div>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button type="submit" className="btn btn-primario" disabled={guardando}>
+            {guardando ? 'Guardando...' : registroEdicion ? 'Guardar cambios' : 'Guardar'}
+          </button>
+          {registroEdicion && (
+            <button
+              type="button"
+              className="btn btn-borde"
+              onClick={onCancelarEdicion}
+              disabled={guardando}
+            >
+              Cancelar edición
+            </button>
+          )}
+        </div>
 
-      <div>
-        <button type="submit" className="btn btn-primario">
-          Guardar sesión
-        </button>
-      </div>
-
-      {mensajeExito && (
-        <p className="mensaje ok" role="status">
-          {mensajeExito}
-        </p>
-      )}
-    </form>
+        {errorApi && <p className="mensaje error" role="alert">{errorApi}</p>}
+      </form>
+    </aside>
   )
 }
-

@@ -1,4 +1,9 @@
+import { Link } from 'react-router-dom'
+import { useSesion } from '../contexto/SesionContext'
+
 export default function Hero() {
+  const sesion = useSesion()
+
   return (
     <section className="hero">
       <div className="contenedor hero-grid">
@@ -10,14 +15,22 @@ export default function Hero() {
             progreso desde cualquier dispositivo.
           </p>
           <div className="hero-acciones">
-            <a className="btn btn-primario" href="#">Ver rutinas</a>
-            <a className="btn btn-borde" href="#">Crear cuenta gratis</a>
+            <Link className="btn btn-primario" to="/rutinas">
+              Ver rutinas
+            </Link>
+            {!sesion && (
+              <Link className="btn btn-borde" to="/registro">
+                Crear cuenta gratis
+              </Link>
+            )}
           </div>
         </div>
         <aside className="panel-amarillo">
           <h2>Empieza por tu punto de partida</h2>
           <p>Calcula tu IMC en segundos y elige la rutina que mejor se ajusta a ti.</p>
-          <a className="btn btn-negro" href="#calculadora">Calcular mi IMC</a>
+          <a className="btn btn-negro" href="#calculadora">
+            Calcular mi IMC
+          </a>
         </aside>
       </div>
     </section>
