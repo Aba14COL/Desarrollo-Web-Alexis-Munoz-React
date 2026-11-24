@@ -7,12 +7,32 @@ export const supabase = createClient(url, key, {
   auth: { flowType: 'implicit', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
 })
 
-const INICIO = window.location.origin + '/'
+
+function obtenerUrlConfirmacion() {
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}/confirmacion`
+  }
+  return 'http://localhost:5173/confirmacion'
+}
+
+function obtenerUrlConfirmacion() {
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}/confirmacion`
+  }
+  return 'http://localhost:5173/confirmacion'
+}
+
+function obtenerUrlRetorno() {
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}/`
+  }
+  return 'http://localhost:5173/'
+}
 
 export async function entrarConGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: INICIO }
+    options: { redirectTo: obtenerUrlRetorno() }
   })
   if (error) throw error
 }
@@ -21,7 +41,10 @@ export async function registrarConCorreo(nombre, correo, password) {
   const { data, error } = await supabase.auth.signUp({
     email: correo,
     password,
-    options: { data: { nombre }, emailRedirectTo: INICIO }
+    options: {
+      data: { nombre },
+      emailRedirectTo: obtenerUrlConfirmacion()
+    }
   })
   if (error) throw error
   return data
