@@ -1,0 +1,158 @@
+.siteHeader {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--color-fondo);
+    border-bottom: 1px solid var(--color-borde);
+}
+
+.headerInner {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    min-height: var(--alto-header);
+}
+
+.logo {
+    font-family: var(--fuente-titulos);
+    font-weight: 800;
+    font-size: 2.1rem;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    text-transform: uppercase;
+    color: var(--color-texto);
+}
+
+.logo span {
+    color: var(--color-principal);
+}
+
+.nav {
+    flex: 1;
+}
+
+.nav ul {
+    display: flex;
+    gap: 0.25rem;
+    list-style: none;
+}
+
+.nav a {
+    display: block;
+    padding: 0.5rem 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--color-texto);
+    transition: color 0.2s ease;
+}
+
+.nav a:hover {
+    color: var(--color-principal);
+}
+
+.nav a.activo {
+    box-shadow: inset 0 -3px 0 var(--color-principal);
+    color: var(--color-principal);
+}
+
+.zonaSesion {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.saludo {
+    color: var(--color-texto-suave);
+}
+
+.saludo strong {
+    color: var(--color-texto);
+}
+
+.navToggle {
+    display: none;
+    position: relative;
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    border: 1px solid var(--color-borde);
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.navToggle span,
+.navToggle span::before,
+.navToggle span::after {
+    position: absolute;
+    height: 2px;
+    background: var(--color-texto);
+}
+
+.navToggle span {
+    top: 20px;
+    left: 11px;
+    right: 11px;
+}
+
+.navToggle span::before,
+.navToggle span::after {
+    content: "";
+    left: 0;
+    right: 0;
+}
+
+.navToggle span::before {
+    top: -7px;
+}
+
+.navToggle span::after {
+    top: 7px;
+}
+
+@media (max-width: 860px) {
+    .headerInner {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 0.75rem 0;
+    }
+
+    .zonaSesion {
+        order: 2;
+        margin-left: auto;
+    }
+
+    .navToggle {
+        display: block;
+        order: 3;
+    }
+
+    .nav {
+        display: none;
+        order: 4;
+        flex-basis: 100%;
+    }
+
+    .abierto .nav {
+        display: block;
+    }
+
+    .nav ul {
+        flex-direction: column;
+        gap: 0;
+        border-top: 1px solid var(--color-borde);
+    }
+
+    .nav a {
+        padding: 0.8rem 0.25rem;
+    }
+
+    .nav a.activo {
+        box-shadow: none;
+    }
+}
+
+@media (max-width: 560px) {
+    .saludo {
+        display: none;
+    }
+}
