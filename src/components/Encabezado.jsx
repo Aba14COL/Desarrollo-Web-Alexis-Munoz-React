@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { useSesion, nombreVisible } from '../contexto/SesionContext'
-import { cerrarSesion } from '../supabaseClient'
+import { useSesion, nombreVisible } from '../context/SesionContext'
+import { cerrarSesion } from '../lib/supabase'
 import styles from './Encabezado.module.css'
 
 export default function Encabezado() {

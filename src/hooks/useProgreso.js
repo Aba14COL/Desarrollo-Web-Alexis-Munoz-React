@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import * as progresoService from '../servicios/progresoService'
+import * as progresoService from '../services/progresoService'
 
 /**
  * useProgreso - Hook que coordina la consulta, dependencias,
