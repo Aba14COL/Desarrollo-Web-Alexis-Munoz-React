@@ -1,8 +1,8 @@
 import { useState, useId } from 'react'
-import FormularioRegistro from '../componentes/FormularioRegistro'
-import TarjetaProgreso from '../componentes/TarjetaProgreso'
+import FormularioRegistro from '../components/FormularioRegistro'
+import TarjetaProgreso from '../components/TarjetaProgreso'
 import { useProgreso } from '../hooks/useProgreso'
-import * as progresoService from '../servicios/progresoService'
+import * as progresoService from '../services/progresoService'
 import { buscarRutinaPorId } from '../datos'
 
 export default function Progreso() {

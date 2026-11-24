@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { entrarConCorreo, entrarConGoogle } from '../supabaseClient'
-import { useSesion } from '../contexto/SesionContext'
+import { entrarConCorreo, entrarConGoogle } from '../lib/supabase'
+import { useSesion } from '../context/SesionContext'
 
 export default function Login() {
   const [email, setEmail] = useState('')

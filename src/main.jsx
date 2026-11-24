@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import { SesionProvider } from './contexto/SesionContext'
+import { SesionProvider } from './context/SesionContext'
 import './styles.css'
 import App from './App.jsx'
 

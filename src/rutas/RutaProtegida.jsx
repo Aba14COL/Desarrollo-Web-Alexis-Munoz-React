@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom'
-import { useSesion } from '../contexto/SesionContext'
+import { useSesion } from '../context/SesionContext'
 
 /**
  * Protege rutas privadas.

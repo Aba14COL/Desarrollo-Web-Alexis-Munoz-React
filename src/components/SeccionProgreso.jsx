@@ -4,7 +4,7 @@ import TarjetaProgreso from './TarjetaProgreso'
 import FormularioRegistro from './FormularioRegistro'
 import { useToggle } from '../hooks/useToggle'
 import { useProgreso } from '../hooks/useProgreso'
-import { eliminarProgreso } from '../servicios/progresoService'
+import { eliminarProgreso } from '../services/progresoService'
 
 export default function SeccionProgreso() {
   // 'refrescar' se incrementa tras crear o eliminar → fuerza nueva consulta a Supabase

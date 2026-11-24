@@ -1,5 +1,5 @@
-import Hero from '../componentes/Hero'
-import CalculadoraIMC from '../componentes/CalculadoraIMC'
+import Hero from '../components/Hero'
+import CalculadoraIMC from '../components/CalculadoraIMC'
 
 export default function Inicio() {
   return (
