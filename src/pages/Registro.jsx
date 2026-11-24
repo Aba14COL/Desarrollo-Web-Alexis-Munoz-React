@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { registrarConCorreo, entrarConGoogle } from '../supabaseClient'
-import { useSesion } from '../contexto/SesionContext'
+import { registrarConCorreo, entrarConGoogle } from '../lib/supabase'
+import { useSesion } from '../context/SesionContext'
 
 export default function Registro() {
   const [nombre, setNombre] = useState('')

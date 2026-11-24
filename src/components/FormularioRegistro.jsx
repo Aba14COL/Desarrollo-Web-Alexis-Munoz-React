@@ -1,6 +1,6 @@
 import { useState, useId, useEffect } from 'react'
 import { rutinas } from '../datos'
-import { crearRegistro, editarRegistro } from '../servicios/progresoService'
+import { crearRegistro, editarRegistro } from '../services/progresoService'
 
 function fechaHoy() {
   return new Date().toLocaleDateString('en-CA')

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { supabase } from '../supabaseClient'
-import { useSesion, nombreVisible } from '../contexto/SesionContext'
+import { supabase } from '../lib/supabase'
+import { useSesion, nombreVisible } from '../context/SesionContext'
 
 export default function Confirmacion() {
   const [segundos, setSegundos] = useState(4)

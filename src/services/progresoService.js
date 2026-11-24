@@ -1,4 +1,4 @@
-import { supabase } from '../supabaseClient'
+import { supabase } from '../lib/supabase'
 
 /**
  * Capa de servicio de datos para registros de entrenamiento.
