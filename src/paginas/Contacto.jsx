@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 
 export default function Contacto() {
@@ -8,6 +8,34 @@ export default function Contacto() {
   const [mensaje, setMensaje] = useState('')
   const [estado, setEstado] = useState({ texto: '', tipo: '' })
   const [enviando, setEnviando] = useState(false)
+
+  // Estado para la tabla de preguntas desde Supabase
+  const [preguntas, setPreguntas] = useState([])
+  const [cargandoPreguntas, setCargandoPreguntas] = useState(true)
+  const [errorPreguntas, setErrorPreguntas] = useState(null)
+
+  // Cargar preguntas desde Supabase
+  async function cargarPreguntas() {
+    setCargandoPreguntas(true)
+    setErrorPreguntas(null)
+    try {
+      const { data, error } = await supabase
+        .from('mensajes_contacto')
+        .select('*')
+        .order('creado_en', { ascending: false })
+
+      if (error) throw error
+      setPreguntas(data || [])
+    } catch (err) {
+      setErrorPreguntas(err.message || 'No se pudieron cargar las preguntas.')
+    } finally {
+      setCargandoPreguntas(false)
+    }
+  }
+
+  useEffect(() => {
+    cargarPreguntas()
+  }, [])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -41,7 +69,8 @@ export default function Contacto() {
         nombre: nombre.trim(),
         correo: correo.trim(),
         asunto: asunto.trim(),
-        mensaje: mensaje.trim()
+        mensaje: mensaje.trim(),
+        respondida: false // por defecto no contestada
       })
 
       if (error) throw error
@@ -51,6 +80,8 @@ export default function Contacto() {
       setCorreo('')
       setAsunto('')
       setMensaje('')
+      // Recargar preguntas para que aparezca la nueva
+      cargarPreguntas()
     } catch (err) {
       setEstado({
         texto: `Error al enviar mensaje: ${err.message || 'Intenta de nuevo.'}`,
@@ -67,7 +98,7 @@ export default function Contacto() {
         <div className="contenedor contacto-grid">
           <div>
             <h1 className="titulo-seccion">Contáctanos</h1>
-            <p className="texto-suave" style={{ marginBotton: '1.5rem', marginBottom: '1.5rem' }}>
+            <p className="texto-suave" style={{ marginBottom: '1.5rem' }}>
               ¿Tienes alguna pregunta sobre nuestras rutinas? Escríbenos y nuestro equipo
               te responderá lo antes posible.
             </p>
@@ -158,7 +189,18 @@ export default function Contacto() {
 
       <section className="seccion">
         <div className="contenedor">
-          <h2 className="titulo-seccion">Preguntas</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+            <h2 className="titulo-seccion" style={{ margin: 0 }}>Preguntas de la comunidad</h2>
+            <button
+              type="button"
+              className="btn btn-borde btn-sm"
+              onClick={cargarPreguntas}
+              disabled={cargandoPreguntas}
+            >
+              {cargandoPreguntas ? 'Actualizando...' : 'Actualizar'}
+            </button>
+          </div>
+
           <div className="tabla-wrap">
             <table className="tabla-preguntas">
               <thead>
@@ -170,38 +212,43 @@ export default function Contacto() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>#001</td>
-                  <td>carlos@correo.com</td>
-                  <td>Duda sobre rutina principiante</td>
-                  <td>
-                    <span className="estado respondida">Respondida</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>#002</td>
-                  <td>laura@correo.com</td>
-                  <td>Cambio de plan de entrenamiento</td>
-                  <td>
-                    <span className="estado sin-responder">Sin responder</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>#003</td>
-                  <td>mateo@correo.com</td>
-                  <td>Consulta sobre ejercicios HIIT</td>
-                  <td>
-                    <span className="estado respondida">Respondida</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>#004</td>
-                  <td>sofia@correo.com</td>
-                  <td>Horarios de asesoría personalizada</td>
-                  <td>
-                    <span className="estado sin-responder">Sin responder</span>
-                  </td>
-                </tr>
+                {cargandoPreguntas ? (
+                  <tr>
+                    <td colSpan="4" style={{ textAlign: 'center', padding: '1.5rem' }}>
+                      Cargando preguntas desde Supabase...
+                    </td>
+                  </tr>
+                ) : errorPreguntas ? (
+                  <tr>
+                    <td colSpan="4" style={{ textAlign: 'center', color: 'var(--color-error)', padding: '1.5rem' }}>
+                      {errorPreguntas}
+                    </td>
+                  </tr>
+                ) : preguntas.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--color-texto-suave)' }}>
+                      No hay preguntas enviadas todavía. ¡Sé el primero en escribirnos!
+                    </td>
+                  </tr>
+                ) : (
+                  preguntas.map((p, index) => {
+                    const idVisible = p.id ? `#${String(p.id).slice(0, 5)}` : `#00${index + 1}`
+                    const estaRespondida = Boolean(p.respondida)
+
+                    return (
+                      <tr key={p.id || index}>
+                        <td>{idVisible}</td>
+                        <td>{p.correo}</td>
+                        <td>{p.asunto}</td>
+                        <td>
+                          <span className={`estado ${estaRespondida ? 'respondida' : 'sin-responder'}`}>
+                            {estaRespondida ? 'Respondida' : 'Sin responder'}
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
               </tbody>
             </table>
           </div>
