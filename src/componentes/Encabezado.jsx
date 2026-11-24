@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useSesion, nombreVisible } from '../contexto/SesionContext'
 import { cerrarSesion } from '../supabaseClient'
+import styles from './Encabezado.module.css'
 
 export default function Encabezado() {
   const [abierto, setAbierto] = useState(false)
@@ -18,13 +19,13 @@ export default function Encabezado() {
   }
 
   return (
-    <header className={'site-header' + (abierto ? ' abierto' : '')}>
-      <div className="contenedor header-inner">
-        <Link className="logo" to="/" aria-label="FitPlan, inicio">
+    <header className={`${styles.siteHeader} ${abierto ? styles.abierto : ''}`}>
+      <div className={`contenedor ${styles.headerInner}`}>
+        <Link className={styles.logo} to="/" aria-label="FitPlan, inicio">
           Fit<span>Plan</span>
         </Link>
         <button
-          className="nav-toggle"
+          className={styles.navToggle}
           type="button"
           aria-expanded={abierto}
           aria-controls="menu"
@@ -33,36 +34,36 @@ export default function Encabezado() {
         >
           <span></span>
         </button>
-        <nav id="menu" aria-label="Principal">
+        <nav id="menu" className={styles.nav} aria-label="Principal">
           <ul>
             <li>
-              <NavLink to="/" end className={({ isActive }) => (isActive ? 'activo' : '')}>
+              <NavLink to="/" end className={({ isActive }) => (isActive ? styles.activo : '')}>
                 Inicio
               </NavLink>
             </li>
             <li>
-              <NavLink to="/rutinas" className={({ isActive }) => (isActive ? 'activo' : '')}>
+              <NavLink to="/rutinas" className={({ isActive }) => (isActive ? styles.activo : '')}>
                 Rutinas
               </NavLink>
             </li>
             <li>
-              <NavLink to="/contacto" className={({ isActive }) => (isActive ? 'activo' : '')}>
+              <NavLink to="/contacto" className={({ isActive }) => (isActive ? styles.activo : '')}>
                 Contacto
               </NavLink>
             </li>
             {sesion && (
               <li>
-                <NavLink to="/progreso" className={({ isActive }) => (isActive ? 'activo' : '')}>
+                <NavLink to="/progreso" className={({ isActive }) => (isActive ? styles.activo : '')}>
                   Mi progreso
                 </NavLink>
               </li>
             )}
           </ul>
         </nav>
-        <div className="zona-sesion">
+        <div className={styles.zonaSesion}>
           {sesion ? (
             <>
-              <span className="saludo">
+              <span className={styles.saludo}>
                 Hola, <strong>{nombreVisible(sesion.user)}</strong>
               </span>
               <button

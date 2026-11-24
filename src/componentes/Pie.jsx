@@ -1,8 +1,10 @@
+import styles from './Pie.module.css'
+
 export default function Pie() {
   return (
-    <footer className="site-footer">
+    <footer className={styles.siteFooter}>
       <div className="contenedor">
-        <p>&copy; 2026 FITPLAN. Todos los derechos reservados.</p>
+        <p className={styles.texto}>&copy; 2026 FITPLAN. Todos los derechos reservados.</p>
       </div>
     </footer>
   )
