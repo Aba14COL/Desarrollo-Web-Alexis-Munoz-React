@@ -136,3 +136,35 @@ export function buscarRutinaPorId(id) {
   });
   return encontrada;
 }
+
+
+/**
+ * Registros de progreso de ejemplo.
+ * Cada objeto representa una sesión de entrenamiento completada.
+ */
+export const registrosProgreso = [
+  {
+    id: 1,
+    rutina: "Entrenamiento funcional completo",
+    fecha: "2026-11-02",
+    duracionReal: "38 min",
+    estado: "completada",
+    nota: "Me sentí con mucha energía, aumenté repeticiones en sentadillas."
+  },
+  {
+    id: 2,
+    rutina: "Cardio + fuerza combinado",
+    fecha: "2026-11-01",
+    duracionReal: "42 min",
+    estado: "completada",
+    nota: "Buen ritmo cardíaco, los burpees siguen siendo un reto."
+  },
+  {
+    id: 3,
+    rutina: "Core y estabilidad",
+    fecha: "2026-10-30",
+    duracionReal: "25 min",
+    estado: "parcial",
+    nota: "Solo completé 3 de 4 series por falta de tiempo."
+  }
+];
