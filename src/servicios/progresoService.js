@@ -1,11 +1,13 @@
 import { supabase } from '../supabaseClient'
 
 /**
- * Obtiene todos los registros del usuario autenticado ordenados por fecha desc.
+ * Capa de servicio de datos para registros de entrenamiento.
+ * Encapsula la comunicación con la API de Supabase REST.
  */
-export async function listarRegistros(signal) {
+
+export async function obtener(signal) {
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('No hay una sesión activa para autenticar la petición')
+  if (!user) throw new Error('No hay una sesión activa para autenticar la petición.')
 
   let query = supabase
     .from('registros_entrenamiento')
@@ -22,12 +24,9 @@ export async function listarRegistros(signal) {
   return data || []
 }
 
-/**
- * Inserta un nuevo registro de entrenamiento.
- */
-export async function crearRegistro(datos) {
+export async function crear(datos) {
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('No hay una sesión activa para autenticar la petición')
+  if (!user) throw new Error('No hay una sesión activa para autenticar la petición.')
 
   const { data, error } = await supabase
     .from('registros_entrenamiento')
@@ -42,16 +41,13 @@ export async function crearRegistro(datos) {
 
   if (error) throw new Error(error.message)
   if (!data || data.length !== 1) {
-    throw new Error('No se pudo verificar la creación del registro')
+    throw new Error('No se pudo verificar la creación del registro.')
   }
   return data[0]
 }
 
-/**
- * Modifica un registro existente filtrando por id.
- */
-export async function editarRegistro(id, cambios) {
-  if (!id) throw new Error('Se requiere el id del registro para editar')
+export async function editar(id, cambios) {
+  if (!id) throw new Error('Se requiere el id del registro para editar.')
 
   const { data, error } = await supabase
     .from('registros_entrenamiento')
@@ -66,16 +62,13 @@ export async function editarRegistro(id, cambios) {
 
   if (error) throw new Error(error.message)
   if (!data || data.length === 0) {
-    throw new Error('no se encontró el registro')
+    throw new Error('No se encontró el registro.')
   }
   return data[0]
 }
 
-/**
- * Elimina un registro por id.
- */
-export async function eliminarRegistro(id) {
-  if (!id) throw new Error('Se requiere el id del registro para eliminar')
+export async function eliminar(id) {
+  if (!id) throw new Error('Se requiere el id del registro para eliminar.')
 
   const { data, error } = await supabase
     .from('registros_entrenamiento')
@@ -85,7 +78,13 @@ export async function eliminarRegistro(id) {
 
   if (error) throw new Error(error.message)
   if (!data || data.length !== 1) {
-    throw new Error('No se pudo eliminar el registro o ya no existe')
+    throw new Error('No se pudo eliminar el registro o ya no existe.')
   }
   return data[0]
 }
+
+// Aliases para compatibilidad
+export const listarRegistros = obtener
+export const crearRegistro = crear
+export const editarRegistro = editar
+export const eliminarRegistro = eliminar

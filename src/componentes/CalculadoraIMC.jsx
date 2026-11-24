@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { rutinas, obtenerCategoriaIMC } from '../datos'
 import ListaRutinas from './ListaRutinas'
 
@@ -22,6 +22,9 @@ const mensajes = {
 }
 
 export default function CalculadoraIMC() {
+  const id = useId()
+  const idPeso = `${id}-peso`
+  const idAltura = `${id}-altura`
   const [peso, setPeso] = useState('')
   const [altura, setAltura] = useState('')
   const [resultado, setResultado] = useState(null) // { imc, categoria } | { error }
@@ -30,8 +33,12 @@ export default function CalculadoraIMC() {
     e.preventDefault()
     const p = parseFloat(peso)
     const a = parseFloat(altura)
-    if (!(p > 0 && a > 0)) {
-      setResultado({ error: 'Por favor ingresa valores válidos para peso y altura.' })
+    if (!p || p <= 0 || p > 200) {
+      setResultado({ error: 'Por favor ingresa un peso válido entre 1 y 200 kg.' })
+      return
+    }
+    if (!a || a < 0.5 || a > 2.0) {
+      setResultado({ error: 'Por favor ingresa una altura válida entre 0.5 y 2.0 metros.' })
       return
     }
     const imc = p / (a * a)
@@ -54,24 +61,51 @@ export default function CalculadoraIMC() {
           <div className="panel">
             <form className="formulario" onSubmit={calcular}>
               <div className="campo">
-                <label htmlFor="peso">Peso (kg)</label>
-                <input type="number" id="peso" placeholder="Ej: 70" min="1" max="500" step="0.1"
-                  value={peso} onChange={(e) => setPeso(e.target.value)} />
+                <label htmlFor={idPeso}>Peso (kg)</label>
+                <input
+                  type="number"
+                  id={idPeso}
+                  placeholder="Ej: 70"
+                  min="1"
+                  max="500"
+                  step="0.1"
+                  value={peso}
+                  onChange={(e) => setPeso(e.target.value)}
+                  required
+                />
               </div>
               <div className="campo">
-                <label htmlFor="altura">Altura (m)</label>
-                <input type="number" id="altura" placeholder="Ej: 1.75" min="0.5" max="2.5" step="0.01"
-                  value={altura} onChange={(e) => setAltura(e.target.value)} />
+                <label htmlFor={idAltura}>Altura (m)</label>
+                <input
+                  type="number"
+                  id={idAltura}
+                  placeholder="Ej: 1.75"
+                  min="0.5"
+                  max="2.5"
+                  step="0.01"
+                  value={altura}
+                  onChange={(e) => setAltura(e.target.value)}
+                  required
+                />
               </div>
-              <button type="submit" className="btn btn-primario btn-bloque">Calcular mi IMC</button>
+              <button type="submit" className="btn btn-primario btn-bloque">
+                Calcular mi IMC
+              </button>
             </form>
           </div>
         </div>
 
-        <p style={{
-          fontWeight: 'bold', fontSize: '1.15rem', minHeight: '1.6em', textAlign: 'center', marginTop: '1.5rem',
-          color: resultado?.error ? 'var(--color-terciario)' : colores[categoria]
-        }}>
+        <p
+          style={{
+            fontWeight: 'bold',
+            fontSize: '1.15rem',
+            minHeight: '1.6em',
+            textAlign: 'center',
+            marginTop: '1.5rem',
+            color: resultado?.error ? 'var(--color-error)' : colores[categoria] || 'inherit'
+          }}
+          role="status"
+        >
           {resultado?.error ?? (resultado && `Tu IMC es ${resultado.imc.toFixed(2)}. ${mensajes[categoria]}`)}
         </p>
 
