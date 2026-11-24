@@ -8,12 +8,7 @@ export const supabase = createClient(url, key, {
 })
 
 
-function obtenerUrlConfirmacion() {
-  if (typeof window !== 'undefined') {
-    return `${window.location.origin}/confirmacion`
-  }
-  return 'http://localhost:5173/confirmacion'
-}
+
 
 function obtenerUrlConfirmacion() {
   if (typeof window !== 'undefined') {
