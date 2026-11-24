@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { useState, useId } from 'react'
 import FormularioRegistro from '../componentes/FormularioRegistro'
 import TarjetaProgreso from '../componentes/TarjetaProgreso'
 import { useProgreso } from '../hooks/useProgreso'
-import { eliminarRegistro } from '../servicios/progresoService'
+import * as progresoService from '../servicios/progresoService'
 import { buscarRutinaPorId } from '../datos'
 
 export default function Progreso() {
-  const [refrescar, setRefrescar] = useState(0)
-  const { registros, cargando, error } = useProgreso(refrescar)
+  const id = useId()
+  const idBusqueda = `${id}-busqueda`
+  const { datos: registros, cargando, error, recargar } = useProgreso()
   const [registroEdicion, setRegistroEdicion] = useState(null)
   const [busqueda, setBusqueda] = useState('')
   const [mensaje, setMensaje] = useState({ texto: '', tipo: '' })
@@ -16,7 +17,7 @@ export default function Progreso() {
   function handleGuardado() {
     setRegistroEdicion(null)
     setMensaje({ texto: 'Guardado correctamente.', tipo: 'ok' })
-    setRefrescar((prev) => prev + 1)
+    recargar()
   }
 
   function handleCancelarEdicion() {
@@ -35,14 +36,14 @@ export default function Progreso() {
     setEnviando(true)
     setMensaje({ texto: '', tipo: '' })
     try {
-      await eliminarRegistro(registro.id)
+      await progresoService.eliminar(registro.id)
       if (registroEdicion?.id === registro.id) {
         setRegistroEdicion(null)
       }
       setMensaje({ texto: 'Registro eliminado correctamente.', tipo: 'ok' })
-      setRefrescar((prev) => prev + 1)
+      recargar()
     } catch (err) {
-      setMensaje({ texto: err.message || 'No se pudo eliminar', tipo: 'error' })
+      setMensaje({ texto: err.message || 'No se pudo eliminar el registro.', tipo: 'error' })
     } finally {
       setEnviando(false)
     }
@@ -70,10 +71,10 @@ export default function Progreso() {
           <div>
             <h2 className="titulo-seccion">Mis registros</h2>
             <div className="campo" style={{ marginBottom: '1.5rem' }}>
-              <label htmlFor="busqueda">Buscar en mis registros</label>
+              <label htmlFor={idBusqueda}>Buscar en mis registros</label>
               <input
                 type="search"
-                id="busqueda"
+                id={idBusqueda}
                 placeholder="Buscar por rutina o nota..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
@@ -87,6 +88,7 @@ export default function Progreso() {
             )}
 
             <div id="lista-registros">
+              {/* Los 4 estados de la consulta (Paso 2.3): Cargando, Error, Vacío, Resultados */}
               {cargando ? (
                 <div className="estado-mensaje">Cargando tus registros…</div>
               ) : error ? (
@@ -97,7 +99,7 @@ export default function Progreso() {
                   <button
                     type="button"
                     className="btn btn-primario btn-sm"
-                    onClick={() => setRefrescar((prev) => prev + 1)}
+                    onClick={recargar}
                   >
                     Reintentar
                   </button>
